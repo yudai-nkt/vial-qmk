@@ -26,7 +26,7 @@ extern const pointing_device_driver_t pointing_device_driver;
 
 // Invert vertical scroll direction
 #ifndef COCOT_SCROLL_INV_DEFAULT
-#    define COCOT_SCROLL_INV_DEFAULT 1
+#    define COCOT_SCROLL_INV_DEFAULT true
 #endif
 
 #ifndef COCOT_CPI_OPTIONS
@@ -84,8 +84,10 @@ static int16_t v_acm       = 0;
 void pointing_device_init_kb(void) {
     // set the CPI.
     pointing_device_set_cpi(cpi_array[cocot_config.cpi_idx]);
-    // set_auto_mouse_layer(4);
-    // set_auto_mouse_enable(cocot_config.auto_mouse);
+    cocot_config.raw = eeconfig_read_kb();
+    eeconfig_update_kb(cocot_config.raw);
+    //set_auto_mouse_layer(4);
+    set_auto_mouse_enable(cocot_config.auto_mouse);
 }
 
 
@@ -104,8 +106,13 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
         }
 
         // accumulate scroll
-        h_acm += x_rev * cocot_config.scrl_inv;
-        v_acm += y_rev * cocot_config.scrl_inv * -1;
+        if (cocot_config.scrl_inv) {
+            h_acm += x_rev * 1;
+            v_acm += y_rev * -1;
+        } else {
+            h_acm += x_rev * -1;
+            v_acm += y_rev * 1;
+        }
 
         int8_t h_rev = h_acm >> scrl_div_array[cocot_config.scrl_div];
         int8_t v_rev = v_acm >> scrl_div_array[cocot_config.scrl_div];
@@ -158,15 +165,17 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
                     return false;
                 }
         #endif
-        /*
+        //*
         case AM_TOG:
             if(record->event.pressed) { // key down
                 //auto_mouse_layer_off(); // disable target layer if needed
                 cocot_config.auto_mouse ^= 1;
+                eeconfig_update_kb(cocot_config.raw);
                 set_auto_mouse_enable(cocot_config.auto_mouse);
+                //auto_mouse_tg_off = !get_auto_mouse_enable();
             } // do nothing on key up
             return false; // prevent further processing of keycode            
-    */
+    //*/
     }
     
     if (keycode == CPI_SW && record->event.pressed) {
@@ -191,7 +200,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     }
 
     if (keycode == SCRL_IN && record->event.pressed) {
-        cocot_config.scrl_inv = - cocot_config.scrl_inv;
+        cocot_config.scrl_inv ^= 1;
         eeconfig_update_kb(cocot_config.raw);
     }
 
@@ -205,7 +214,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
 
     return true;
 }
-
+/*
 layer_state_t layer_state_set_kb(layer_state_t state) {
     switch(get_highest_layer(state)){
         case 1 ... 2:
@@ -215,18 +224,19 @@ layer_state_t layer_state_set_kb(layer_state_t state) {
         case 3 ... 7:
             //rgblight_sethsv_range(HSV_CYAN, 0, 9);
             cocot_set_scroll_mode(false);
-            //set_auto_mouse_enable(true);
+            set_auto_mouse_enable(true);
             break;
         default:
             //rgblight_sethsv_range(HSV_RED, 0, 9);
             cocot_set_scroll_mode(false);
-            //set_auto_mouse_enable(true);
+            set_auto_mouse_enable(true);
             break;
         }
     //rgblight_set_effect_range( 9, 36);
   return state;
 };
-/*
+*/
+
 layer_state_t layer_state_set_kb(layer_state_t state) {
     switch(get_highest_layer(remove_auto_mouse_layer(state, true))) {
         case 1 ... 2:
@@ -243,14 +253,23 @@ layer_state_t layer_state_set_kb(layer_state_t state) {
         default:
             //rgblight_sethsv_range(HSV_RED, 0, 9);
             cocot_set_scroll_mode(false);
+            
+            if (cocot_config.auto_mouse) {
+                set_auto_mouse_enable(true);
+            } else {
+                //state = remove_auto_mouse_layer(state, false);
+                set_auto_mouse_enable(false);
+            }
+            
             //set_auto_mouse_enable(true);
-            set_auto_mouse_enable(cocot_config.auto_mouse);
+            //state = remove_auto_mouse_layer(state, false);
+            //set_auto_mouse_enable(cocot_config.auto_mouse);
             break;
         }
     //rgblight_set_effect_range( 9, 36);
   return state;
 };
-*/
+
 
 
 void eeconfig_init_kb(void) {
@@ -356,40 +375,41 @@ void oled_write_layer_state(void) {
     } else {
         angle = angle_origin;
     }
-
-    //int cpi = 1000;
-    //int scroll_div = 7;
-    //int angle = -90;
+    int lyr = get_highest_layer(layer_state);
 
     char buf1[6];
     char buf2[6];
     char buf3[8];
+    char buf4[8];
+
     snprintf(buf1, 6, "%4d", cpi);
     snprintf(buf2, 6, "%1d", scroll_div);
     snprintf(buf3, 8, "%2d", abs(angle));
+    snprintf(buf4, 8, "%1d", lyr);
     
-    oled_write_P    (get_u8_str(get_highest_layer(layer_state), ' '), false);
+    oled_write(buf4, false);
+    //oled_write_P(get_u8_str(get_highest_layer(layer_state), '0'), false);
     
     oled_write_P(PSTR("/"), false);
-    
-    if (cocot_get_scroll_mode()){
+        if (cocot_get_scroll_mode()){
         oled_write_P(PSTR("S"), false);
     } else{
         oled_write_P(PSTR("C"), false);
     }
-    
-    //
-    //if (state == SCROLLING) {
-    //    oled_write_P(PSTR("S"), false);
-    //} else {
-    //    oled_write_P(PSTR("C"), false);
-    //}
-    //
+
+    oled_write_P(PSTR("/"), false);
+    if (get_auto_mouse_enable()){
+        oled_write_P(PSTR("Y"), false);
+    } else{
+        oled_write_P(PSTR("N"), false);
+    }
     
     oled_write_P(PSTR("/"), false);
     oled_write(buf1, false);
     oled_write_P(PSTR("/"), false);
+    
     oled_write(buf2, false);
+
     oled_write_P(PSTR("/"), false);
     if (angle < 0) {
         oled_write_P(PSTR("-"), false);

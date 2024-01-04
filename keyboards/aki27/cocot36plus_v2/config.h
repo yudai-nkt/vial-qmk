@@ -4,29 +4,9 @@
 #pragma once
 #define OLED_FONT_H "keyboards/aki27/cocot36plus_v2/lib/glcdfont.c"
 
-#define VIAL_KEYBOARD_UID {0xC8, 0x4D, 0xC8, 0xD5, 0xD8, 0x28, 0x66, 0x16}
-#define VIAL_UNLOCK_COMBO_ROWS {0, 0}
-#define VIAL_UNLOCK_COMBO_COLS {1, 9}
-
 
 /* VIA */
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
-
-
-/* tapping term */
-//#define TAPPING_FORCE_HOLD
-//#define QUICK_TAP_TERM
-#define TAPPING_TERM 200
-
-
-/* Set 0 if debouncing isn't needed */
-#define DEBOUNCE 5
-
-
-/* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
-#undef LOCKING_SUPPORT_ENABLE
-/* Locking resynchronize hack */
-#undef LOCKING_RESYNC_ENABLE
 
 
 /* RGB LED */
@@ -118,28 +98,9 @@
 
 #endif
 
-
 #ifndef PMW33XX_CS_PIN
 #    define PMW33XX_CS_PIN GP5
 #endif
 
-
-
 #define POINTING_DEVICE_ROTATION_180
 
-
-/*
- * Feature disable options
- *  These options are also useful to firmware size reduction.
- */
-
-/* disable debug print */
-//#define NO_DEBUG
-
-/* disable print */
-//#define NO_PRINT
-
-/* disable action features */
-//#define NO_ACTION_LAYER
-//#define NO_ACTION_TAPPING
-//#define NO_ACTION_ONESHOT
