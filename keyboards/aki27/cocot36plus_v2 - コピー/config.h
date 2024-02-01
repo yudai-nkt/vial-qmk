@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#define OLED_FONT_H "keyboards/aki27/cocot36plus/lib/glcdfont.c"
+#define OLED_FONT_H "keyboards/aki27/cocot36plus_v2/lib/glcdfont.c"
 
 
 /* VIA */
@@ -102,5 +102,5 @@
 #    define PMW33XX_CS_PIN GP5
 #endif
 
-#define POINTING_DEVICE_ROTATION_90
+#define POINTING_DEVICE_ROTATION_180
 

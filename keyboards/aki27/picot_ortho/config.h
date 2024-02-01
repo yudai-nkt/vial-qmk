@@ -1,15 +1,39 @@
-// Copyright 2022 aki27 (@aki27kbd)
+// Copyright 2024 aki27 (@aki27kbd)
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#define OLED_FONT_H "keyboards/aki27/cocot36plus/lib/glcdfont.c"
 
+#define VIAL_KEYBOARD_UID {0xB9, 0x29, 0x4B, 0x9E, 0x0B, 0x83, 0x8D, 0xF4}
+#define VIAL_UNLOCK_COMBO_ROWS {0, 0}
+#define VIAL_UNLOCK_COMBO_COLS {1, 11}
 
 /* VIA */
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
 
+/* Trackball */
+#ifdef POINTING_DEVICE_ENABLE
+
+#    undef RP_SPI_USE_SPI0
+#    define RP_SPI_USE_SPI0 TRUE
+#    undef RP_SPI_USE_SPI1
+#    define RP_SPI_USE_SPI1 FALSE
+#    define SPI_DRIVER SPID0
+
+#    define SPI_SCK_PIN GP2
+#    define SPI_MISO_PIN GP4
+#    define SPI_MOSI_PIN GP3
+
+#endif
+
+#ifndef PMW33XX_CS_PIN
+#    define PMW33XX_CS_PIN GP5
+#endif
+
+#define POINTING_DEVICE_ROTATION_180
+
 
 /* RGB LED */
+/*
 #define WS2812_PIO_USE_PIO1
 #define WS2812_DI_PIN GP0
 
@@ -31,9 +55,10 @@
     #define RGBLIGHT_EFFECT_RGB_TEST
     #define RGBLIGHT_EFFECT_ALTERNATING
 #endif
-
+*/
 
 /* RGB MATRIX */
+/*
 //#define DRIVER_LED_TOTAL 60
 #define RGB_MATRIX_LED_COUNT 45
 
@@ -67,10 +92,10 @@
 #define ENABLE_RGB_MATRIX_SPLASH
 #define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_CYCLE_ALL
 #endif
-
+*/
 
 /* OLED */
-
+/*
 #ifdef OLED_ENABLE
 #    undef RP_I2C_USE_I2C0
 #    define RP_I2C_USE_I2C0 FALSE
@@ -80,27 +105,4 @@
 #    define I2C1_SDA_PIN GP26
 #    define I2C1_SCL_PIN GP27
 #endif
-
-
-/* Trackball */
-
-#ifdef POINTING_DEVICE_ENABLE
-
-#    undef RP_SPI_USE_SPI0
-#    define RP_SPI_USE_SPI0 TRUE
-#    undef RP_SPI_USE_SPI1
-#    define RP_SPI_USE_SPI1 FALSE
-#    define SPI_DRIVER SPID0
-
-#    define SPI_SCK_PIN GP2
-#    define SPI_MISO_PIN GP4
-#    define SPI_MOSI_PIN GP3
-
-#endif
-
-#ifndef PMW33XX_CS_PIN
-#    define PMW33XX_CS_PIN GP5
-#endif
-
-#define POINTING_DEVICE_ROTATION_90
-
+*/

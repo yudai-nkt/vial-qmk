@@ -16,7 +16,7 @@
 
 #include "quantum.h"
 #include <math.h>
-#include "bally.h"
+#include "cocot38mini.h"
 #include "wait.h"
 #include "debug.h"
 #include <stdio.h>
@@ -31,7 +31,6 @@ extern const pointing_device_driver_t pointing_device_driver;
 
 #ifndef COCOT_CPI_OPTIONS
 #    define COCOT_CPI_OPTIONS { 200, 400, 800, 1600, 3200 }
-//#    define COCOT_CPI_OPTIONS { 400, 800 }
 #    ifndef COCOT_CPI_DEFAULT
 #       define COCOT_CPI_DEFAULT 3
 #    endif
@@ -52,14 +51,20 @@ extern const pointing_device_driver_t pointing_device_driver;
 
 
 #ifndef COCOT_ROTATION_ANGLE
-#    define COCOT_ROTATION_ANGLE { -60, -45, -30, -15, 0, 15, 30, 45, 60 }
+#    define COCOT_ROTATION_ANGLE { -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75 }
 #    ifndef COCOT_ROTATION_DEFAULT
-#       define COCOT_ROTATION_DEFAULT 2
+#       define COCOT_ROTATION_DEFAULT 3
 #    endif
 #endif
 #ifndef COCOT_ROTATION_DEFAULT
-#    define COCOT_ROTATION_DEFAULT 2
+#    define COCOT_ROTATION_DEFAULT 3
 #endif
+#ifndef COCOT_AUTO_MOUSE_MODE
+#    define COCOT_AUTO_MOUSE_MODE true
+#endif
+
+
+
 
 
 cocot_config_t cocot_config;
@@ -79,6 +84,8 @@ static int16_t v_acm       = 0;
 void pointing_device_init_kb(void) {
     // set the CPI.
     pointing_device_set_cpi(cpi_array[cocot_config.cpi_idx]);
+    set_auto_mouse_layer(4);
+    set_auto_mouse_enable(cocot_config.auto_mouse);
 }
 
 
@@ -142,16 +149,23 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
     if (!process_record_user(keycode, record)) return false;
 
     switch (keycode) {
-#ifndef MOUSEKEY_ENABLE
-        // process KC_MS_BTN1~8 by myself
-        // See process_action() in quantum/action.c for details.
-        case KC_MS_BTN1 ... KC_MS_BTN8: {
-            extern void register_button(bool, enum mouse_buttons);
-            register_button(record->event.pressed, MOUSE_BTN_MASK(keycode - KC_MS_BTN1));
-            return false;
-        }
-#endif
+        #ifndef MOUSEKEY_ENABLE
+                // process KC_MS_BTN1~8 by myself
+                // See process_action() in quantum/action.c for details.
+                case KC_MS_BTN1 ... KC_MS_BTN8: {
+                    extern void register_button(bool, enum mouse_buttons);
+                    register_button(record->event.pressed, MOUSE_BTN_MASK(keycode - KC_MS_BTN1));
+                    return false;
+                }
+        #endif
 
+        case AM_TOG:
+            if(record->event.pressed) { // key down
+                //auto_mouse_layer_off(); // disable target layer if needed
+                cocot_config.auto_mouse ^= 1;
+                set_auto_mouse_enable(cocot_config.auto_mouse);
+            } // do nothing on key up
+            return false; // prevent further processing of keycode            
     }
 
     if (keycode == CPI_SW && record->event.pressed) {
@@ -192,12 +206,39 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
 }
 
 
+layer_state_t layer_state_set_kb(layer_state_t state) {
+    switch(get_highest_layer(remove_auto_mouse_layer(state, true))) {
+        case 1 ... 2:
+            //rgblight_sethsv_range(HSV_YELLOW, 0, 9);
+            cocot_set_scroll_mode(true);
+            state = remove_auto_mouse_layer(state, false);
+            set_auto_mouse_enable(false);
+            break;
+        case 3 ... 7:
+            //rgblight_sethsv_range(HSV_CYAN, 0, 9);
+            cocot_set_scroll_mode(false);
+            //set_auto_mouse_enable(true);
+            break;
+        default:
+            //rgblight_sethsv_range(HSV_RED, 0, 9);
+            cocot_set_scroll_mode(false);
+            //set_auto_mouse_enable(true);
+            set_auto_mouse_enable(cocot_config.auto_mouse);
+            break;
+        }
+    //rgblight_set_effect_range( 9, 36);
+  return state;
+};
+
+
+
 void eeconfig_init_kb(void) {
     cocot_config.cpi_idx = COCOT_CPI_DEFAULT;
     cocot_config.scrl_div = COCOT_SCROLL_DIV_DEFAULT;
     cocot_config.rotation_angle = COCOT_ROTATION_DEFAULT;
     cocot_config.scrl_inv = COCOT_SCROLL_INV_DEFAULT;
     cocot_config.scrl_mode = false;
+    cocot_config.auto_mouse = COCOT_AUTO_MOUSE_MODE;
     eeconfig_update_kb(cocot_config.raw);
     eeconfig_init_user();
 }
@@ -223,3 +264,112 @@ void cocot_set_scroll_mode(bool mode) {
     cocot_config.scrl_mode = mode;
 }
 
+
+
+
+
+
+#ifdef RGB_MATRIX_ENABLE
+    led_config_t g_led_config = { {
+    // Key Matrix to LED Index
+        {  1, 3, 5, 7, 9,51,53,55,57,59 },
+        { 10,12,14,16,18,42,44,46,48,50 },
+        { 19,20,21,22,23,37,38,39,40,41 },
+        { NO_LED,24,26,28, 0,30,32,34,36,NO_LED }
+    }, {
+    // LED Index to Physical Position
+        {126, 174}, {8, 244}, {19, 239}, {32, 249}, {43, 244}, {56, 254}, {66, 233}, {78, 235}, {89, 214}, {101, 216}, {4, 183}, {15, 178}, {28, 187}, {39, 182}, {52, 192}, {62, 171}, {74, 173}, {85, 153}, {97, 155}, {0, 121}, {24, 126}, {48, 131}, {70, 112}, {93, 93}, {52, 40}, {64, 33}, {75, 23}, {88, 12}, {100, 5}, {113, 0}, {126, 0}, {139, 0}, {152, 5}, {165, 11}, {177, 23}, {189, 33}, {201, 39}, {160, 93}, {183, 112}, {205, 130}, {229, 126}, {254, 121}, {156, 155}, {168, 153}, {179, 173}, {191, 171}, {201, 192}, {214, 182}, {225, 187}, {238, 178}, {249, 183}, {152, 216}, {164, 214}, {175, 235}, {187, 233}, {197, 253}, {210, 244}, {221, 249}, {234, 239}, {245, 244}
+    }, {
+    // LED Index to Flag
+        4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4
+} };
+#endif
+
+
+// OLED utility
+/*
+#ifdef OLED_ENABLE
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    return OLED_ROTATION_0;
+}
+
+
+static const char PROGMEM cocot_logo[] = {
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, 0x90, 0x91, 0x92, 0x93, 0x94,
+    0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF, 0xB0, 0xB1, 0xB2, 0xB3, 0xB4,
+    0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD0, 0xD1, 0xD2, 0xD3, 0xD4,
+    0};
+
+void render_logo(void) {
+    oled_write_P(cocot_logo, false);
+};
+
+
+
+void oled_write_layer_state(void) {
+
+    oled_write_P(PSTR("Layer"), false);
+    // int cpi = pointing_device_get_cpi();
+    int cpi = cpi_array[cocot_config.cpi_idx];
+    int scroll_div = scrl_div_array[cocot_config.scrl_div];
+    int angle_origin = angle_array[cocot_config.rotation_angle];
+    int angle;
+    if (angle_origin > 360) {
+        angle = angle_origin - 65536;
+    } else {
+        angle = angle_origin;
+    }
+
+    //int cpi = 1000;
+    //int scroll_div = 7;
+    //int angle = -90;
+
+    char buf1[6];
+    char buf2[6];
+    char buf3[8];
+    snprintf(buf1, 6, "%4d", cpi);
+    snprintf(buf2, 6, "%1d", scroll_div);
+    snprintf(buf3, 8, "%2d", abs(angle));
+    
+    oled_write_P    (get_u8_str(get_highest_layer(layer_state), ' '), false);
+    
+    oled_write_P(PSTR("/"), false);
+    
+    if (cocot_get_scroll_mode()){
+        oled_write_P(PSTR("S"), false);
+    } else{
+        oled_write_P(PSTR("C"), false);
+    }
+    
+    //
+    //if (state == SCROLLING) {
+    //    oled_write_P(PSTR("S"), false);
+    //} else {
+    //    oled_write_P(PSTR("C"), false);
+    //}
+    //
+    
+    oled_write_P(PSTR("/"), false);
+    oled_write(buf1, false);
+    oled_write_P(PSTR("/"), false);
+    oled_write(buf2, false);
+    oled_write_P(PSTR("/"), false);
+    if (angle < 0) {
+        oled_write_P(PSTR("-"), false);
+    } else {
+        oled_write_P(PSTR(" "), false);
+    }
+    oled_write(buf3, false);
+}
+
+
+bool oled_task_user(void) {
+    render_logo();
+    oled_write_layer_state();
+    return false;
+}
+
+
+#endif
+*/

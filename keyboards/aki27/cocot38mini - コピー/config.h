@@ -2,19 +2,55 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
-#define OLED_FONT_H "keyboards/aki27/cocot36plus/lib/glcdfont.c"
+#define VIAL_KEYBOARD_UID {0x39, 0x9F, 0x74, 0xF9, 0x88, 0x68, 0x7C, 0xFE}
+#define VIAL_UNLOCK_COMBO_ROWS {0, 0}
+#define VIAL_UNLOCK_COMBO_COLS {1, 9}
 
 
 /* VIA */
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
 
 
+/* key matrix size */
+#define MATRIX_COLS 10
+#define MATRIX_ROWS 4
+
+
+/* tapping term */
+//#define TAPPING_FORCE_HOLD
+//#define QUICK_TAP_TERM
+#define TAPPING_TERM 200
+
+
+/* Encoder */
+#define ENCODERS_PAD_A { GP11 }
+#define ENCODERS_PAD_B { GP10 }
+#define ENCODER_RESOLUTION 4
+
+/* Matrix*/
+#define MATRIX_COL_PINS { GP1, GP3, GP5, GP7, GP9, GP20, GP21, GP23, GP25, GP27 }
+#define MATRIX_ROW_PINS { GP29, GP0, GP14, GP13 }
+
+/* COL2ROW, ROW2COL */
+#define DIODE_DIRECTION COL2ROW
+
+
+/* Set 0 if debouncing isn't needed */
+#define DEBOUNCE 5
+
+
+/* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
+#undef LOCKING_SUPPORT_ENABLE
+/* Locking resynchronize hack */
+#undef LOCKING_RESYNC_ENABLE
+
+
 /* RGB LED */
 #define WS2812_PIO_USE_PIO1
-#define WS2812_DI_PIN GP0
+#define WS2812_DI_PIN GP12
 
 #ifdef RGBLIGHT_ENABLE
-    #define RGBLED_NUM 45
+    #define RGBLED_NUM 60
     #define RGBLIGHT_LIMIT_VAL 80
     #define RGBLIGHT_HUE_STEP 10
     #define RGBLIGHT_SAT_STEP 17
@@ -35,7 +71,7 @@
 
 /* RGB MATRIX */
 //#define DRIVER_LED_TOTAL 60
-#define RGB_MATRIX_LED_COUNT 45
+#define RGB_MATRIX_LED_COUNT 60
 
 #ifdef RGB_MATRIX_ENABLE
   #define RGB_MATRIX_KEYPRESSES // reacts to keypresses
@@ -70,17 +106,17 @@
 
 
 /* OLED */
-
+/*
 #ifdef OLED_ENABLE
 #    undef RP_I2C_USE_I2C0
 #    define RP_I2C_USE_I2C0 FALSE
 #    undef RP_I2C_USE_I2C1
 #    define RP_I2C_USE_I2C1 TRUE
-//#    define I2C_DRIVER I2CD2
+#    define I2C_DRIVER I2CD2
 #    define I2C1_SDA_PIN GP26
 #    define I2C1_SCL_PIN GP27
 #endif
-
+*/
 
 /* Trackball */
 
@@ -92,15 +128,34 @@
 #    define RP_SPI_USE_SPI1 FALSE
 #    define SPI_DRIVER SPID0
 
-#    define SPI_SCK_PIN GP2
-#    define SPI_MISO_PIN GP4
-#    define SPI_MOSI_PIN GP3
+#    define SPI_SCK_PIN GP18
+#    define SPI_MISO_PIN GP16
+#    define SPI_MOSI_PIN GP19
 
 #endif
+
 
 #ifndef PMW33XX_CS_PIN
-#    define PMW33XX_CS_PIN GP5
+#    define PMW33XX_CS_PIN GP17
 #endif
 
-#define POINTING_DEVICE_ROTATION_90
 
+
+#define POINTING_DEVICE_ROTATION_180
+
+
+/*
+ * Feature disable options
+ *  These options are also useful to firmware size reduction.
+ */
+
+/* disable debug print */
+//#define NO_DEBUG
+
+/* disable print */
+//#define NO_PRINT
+
+/* disable action features */
+//#define NO_ACTION_LAYER
+//#define NO_ACTION_TAPPING
+//#define NO_ACTION_ONESHOT
