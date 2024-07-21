@@ -1,6 +1,43 @@
 {
     "lighting": "qmk_rgblight",
     "matrix": { "rows": 10, "cols": 6 },
+    "customKeycodes": [
+        {
+            "name": "CPI Switch",
+            "shortName": "CPI_SW",
+            "title": "Switch CPI. Low for precision, high for large movements."
+        },
+        {
+            "name": "Scroll Switch",
+            "shortName": "SCRL_SW",
+            "title": "Larger value equals smaller scroll motion."
+        },
+        {
+            "name": "Sensor Coord CW",
+            "shortName": "ROT_R15",
+            "title": "Rotate sensor coordinate by 15 degrees clockwise"
+        },
+        {
+            "name": "Sensor Coord CCW",
+            "shortName": "ROT_L15",
+            "title": "Rotate sensor coordinate by 15 degrees counterclockwise"
+        },
+        {
+            "name": "Enable scroll mode",
+            "shortName": "SCRL_MO",
+            "title": "Enable scroll mode while being pressed."
+        },
+        {
+            "name": "Toggle scroll mode",
+            "shortName": "SCRL_TO",
+            "title": "Once pushed, mouse mode and scroll mode are switched."
+        },
+        {
+            "name": "Scroll Inversion",
+            "shortName": "SCRL_IN",
+            "title": "Invert scroll direction."
+        }
+    ],
     "layouts": {
         "keymap": [
             [{ "y": 4.7, "x": 10 }, "8,4", "9,2", "9,5"],
