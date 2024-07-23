@@ -31,7 +31,7 @@
   },
   "encoder": {
     "rotary": [
-       { "pin_a": "GP0", "pin_b": "GP0"}
+       { "pin_a": "GP0", "pin_b": "GP1"}
     ]
   },
   "rgblight": {
