@@ -26,7 +26,7 @@
     "rgblight": true
   },
   "ws2812": {
-    "pin": "GP7",
+    "pin": "GP21",
     "driver": "vendor"
   },
   "encoder": {
