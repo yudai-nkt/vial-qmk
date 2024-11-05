@@ -1,4 +1,4 @@
-#include_next "halconf.h"
+#pragma once
 
 /* OLED */
 #ifdef OLED_ENABLE
@@ -11,3 +11,5 @@
 #    undef HAL_USE_SPI
 #    define HAL_USE_SPI TRUE
 #endif
+
+#include_next <halconf.h>
