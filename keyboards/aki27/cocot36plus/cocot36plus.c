@@ -51,7 +51,7 @@ extern const pointing_device_driver_t pointing_device_driver;
 
 
 #ifndef COCOT_ROTATION_ANGLE
-#    define COCOT_ROTATION_ANGLE { -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75 }
+#    define COCOT_ROTATION_ANGLE { -90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90 }
 #    ifndef COCOT_ROTATION_DEFAULT
 #       define COCOT_ROTATION_DEFAULT 3
 #    endif
@@ -76,11 +76,6 @@ uint16_t angle_array[] = COCOT_ROTATION_ANGLE;
 #define ANGLE_SIZE (sizeof(angle_array) / sizeof(uint16_t))
 
 
-// Scroll Accumulation
-static int16_t h_acm       = 0;
-static int16_t v_acm       = 0;
-
-
 void pointing_device_init_kb(void) {
     // set the CPI.
     pointing_device_set_cpi(cpi_array[cocot_config.cpi_idx]);
@@ -90,63 +85,90 @@ void pointing_device_init_kb(void) {
     set_auto_mouse_enable(cocot_config.auto_mouse);
 }
 
-
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
+    static float x_accumulator = 0.0;
+    static float y_accumulator = 0.0;
+    static float prev_x = 0.0, prev_y = 0.0;
 
+    float sensitivity = 0.5;           // Movement sensitivity
+    float smoothing_factor = 0.7;     // Smoothing factor
+    float sensitivity_multiplier = 1.5; // Sensitivity adjustment multiplier
+
+    // Apply rotation angle adjustment
     double rad = angle_array[cocot_config.rotation_angle] * (M_PI / 180) * -1;
-    int8_t x_rev =  + mouse_report.x * cos(rad) - mouse_report.y * sin(rad);
-    int8_t y_rev =  + mouse_report.x * sin(rad) + mouse_report.y * cos(rad);
+    float rotated_x = -(mouse_report.x * cos(rad) - mouse_report.y * sin(rad)); // Reverse X-direction
+    float rotated_y = mouse_report.x * sin(rad) + mouse_report.y * cos(rad);
 
+    // Apply smoothing to the rotated values
+    float smoothed_x = prev_x * smoothing_factor + rotated_x * (1.0 - smoothing_factor);
+    float smoothed_y = prev_y * smoothing_factor + rotated_y * (1.0 - smoothing_factor);
+    prev_x = smoothed_x;
+    prev_y = smoothed_y;
+
+    // Apply sensitivity multiplier
+    smoothed_x *= sensitivity_multiplier;
+    smoothed_y *= sensitivity_multiplier;
+
+    // Scroll mode handling
     if (cocot_get_scroll_mode()) {
-        // rock scroll direction
-        if (abs(x_rev) > abs(y_rev)) {
-            y_rev = 0;
+        static int h_acm = 0, v_acm = 0;
+
+        // Determine scroll direction
+        if (abs((int)smoothed_x) > abs((int)smoothed_y)) {
+            smoothed_y = 0; // Horizontal scroll
         } else {
-            x_rev = 0;
+            smoothed_x = 0; // Vertical scroll
         }
 
-        // accumulate scroll
+        // Accumulate scroll values
         if (cocot_config.scrl_inv) {
-            h_acm += x_rev * 1;
-            v_acm += y_rev * -1;
+            h_acm += smoothed_x;
+            v_acm -= smoothed_y;
         } else {
-            h_acm += x_rev * -1;
-            v_acm += y_rev * 1;
+            h_acm -= smoothed_x;
+            v_acm += smoothed_y;
         }
 
-        int8_t h_rev = h_acm >> scrl_div_array[cocot_config.scrl_div];
-        int8_t v_rev = v_acm >> scrl_div_array[cocot_config.scrl_div];
+        // Calculate scroll values with division factor
+        int8_t h_scroll = h_acm >> scrl_div_array[cocot_config.scrl_div];
+        int8_t v_scroll = v_acm >> scrl_div_array[cocot_config.scrl_div];
 
-        // clear accumulated scroll on assignment
-
-        if (h_rev != 0) {
-            if (mouse_report.h + h_rev > 127) {
-                h_rev = 127 - mouse_report.h;
-            } else if (mouse_report.h + h_rev < -127) {
-                h_rev = -127 - mouse_report.h;
-            }
-            mouse_report.h += h_rev;
-            h_acm -= h_rev << scrl_div_array[cocot_config.scrl_div];
+        // Apply scroll to mouse report
+        if (h_scroll != 0) {
+            mouse_report.h += h_scroll;
+            h_acm -= h_scroll << scrl_div_array[cocot_config.scrl_div];
         }
-        if (v_rev != 0) {
-            if (mouse_report.v + v_rev > 127) {
-                v_rev = 127 - mouse_report.v;
-            } else if (mouse_report.v + v_rev < -127) {
-                v_rev = -127 - mouse_report.v;
-            }
-            mouse_report.v += v_rev;
-            v_acm -= v_rev << scrl_div_array[cocot_config.scrl_div];
+        if (v_scroll != 0) {
+            mouse_report.v += v_scroll;
+            v_acm -= v_scroll << scrl_div_array[cocot_config.scrl_div];
         }
 
+        // Reset X/Y movement in scroll mode
         mouse_report.x = 0;
         mouse_report.y = 0;
     } else {
-        mouse_report.x = -x_rev;
-        mouse_report.y = y_rev;
+        // Movement smoothing and accumulation for normal mode
+        x_accumulator += smoothed_x * sensitivity;
+        y_accumulator += smoothed_y * sensitivity;
+
+        if (fabs(x_accumulator) >= 1.0) {
+            mouse_report.x = (int8_t)x_accumulator;
+            x_accumulator -= mouse_report.x;
+        } else {
+            mouse_report.x = 0;
+        }
+
+        if (fabs(y_accumulator) >= 1.0) {
+            mouse_report.y = (int8_t)y_accumulator;
+            y_accumulator -= mouse_report.y;
+        } else {
+            mouse_report.y = 0;
+        }
     }
 
     return pointing_device_task_user(mouse_report);
 }
+
 
 
 
