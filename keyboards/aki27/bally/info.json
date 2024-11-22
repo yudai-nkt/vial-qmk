@@ -8,6 +8,31 @@
         "pid": "0x0012",
         "vid": "0x1727"
     },
+    "processor": "RP2040",
+    "bootloader": "rp2040",
+    "features": {
+        "bootmagic": true,
+        "extrakey": true,
+        "nkro": true,
+        "oled": false,
+        "rgblight": false,
+        "rgb_matrix": false,
+        "mousekey": true,
+        "encoder": true
+    },
+    "build": {
+        "lto": true
+    },
+    "diode_direction": "COL2ROW",
+    "matrix_pins":{
+        "cols": ["GP25", "GP24", "GP23", "GP22", "GP21", "GP26", "GP27", "GP20", "GP19", "GP18", "GP17", "GP16", "GP13"],
+        "rows": ["GP28", "GP10", "GP14", "GP15"]
+    },
+    "encoder": {
+        "rotary": [
+            {"pin_a": "GP11", "pin_b": "GP12", "resolution": 4}
+        ]
+    },
     "layouts": {
         "LAYOUT": {
             "layout": [

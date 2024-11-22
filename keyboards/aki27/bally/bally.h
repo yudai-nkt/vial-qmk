@@ -18,6 +18,7 @@
 
 #include "quantum.h"
 
+/*
 #define LAYOUT( \
     A000, A001, A002, A003, A004, A005, A006, A007, A008, A009, A010, A011, A012, \
     A100, A101, A102, A103, A104,             A107, A108, A109, A110, A111, RE_A,\
@@ -30,16 +31,16 @@
     { A200,   A201,   A202,   A203,   A204,  KC_NO,   A206,   A207,   A208,   A209,   A210,   A211,   RE_B }, \
     { A300,   A301,   A302,   A303,   A304,   A305,   A306,   A307,   A308,   A309,   A310,   A311,  KC_NO } \
   }
-
-
+*/
 
 typedef union {
-    uint32_t raw;
+    uint64_t raw;
     struct {
         uint8_t cpi_idx;
         uint8_t scrl_div;
         uint8_t rotation_angle;
-        int8_t scrl_inv;
+        bool auto_mouse;
+        bool scrl_inv;
         bool scrl_mode;
         report_mouse_t last_mouse;
     };
@@ -57,6 +58,7 @@ enum cocot_keycodes {
     SCRL_MO,
     SCRL_TO,
     SCRL_IN,
+    AM_TOG
 };
 
 #define CPI_SW QK_KB_0
@@ -66,7 +68,7 @@ enum cocot_keycodes {
 #define SCRL_MO QK_KB_4
 #define SCRL_TO QK_KB_5
 #define SCRL_IN QK_KB_6
-
+#define AM_TOG QK_KB_7
 
 
 bool encoder_update_user(uint8_t index, bool clockwise);
