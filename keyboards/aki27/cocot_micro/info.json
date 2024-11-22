@@ -8,6 +8,21 @@
         "pid": "0x0013",
         "vid": "0x1727"
     },
+    "processor": "RP2040",
+    "bootloader": "rp2040",
+    "features": {
+        "bootmagic": true,
+        "extrakey": true,
+        "nkro": true,
+        "oled": false,
+        "rgblight": false,
+        "rgb_matrix": false,
+        "mousekey": true,
+        "encoder": true
+    },
+    "build": {
+        "lto": true
+    },
     "matrix_pins":{
         "direct": [
             ["GP18", "GP20", "GP27", "GP28", "GP1", "GP29", "GP0", "GP17"]
