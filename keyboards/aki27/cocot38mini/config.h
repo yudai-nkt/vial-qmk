@@ -8,8 +8,8 @@
 /* Trackball */
 
 #ifdef POINTING_DEVICE_ENABLE
-
-#    undef RP_SPI_USE_SPI0
+ 
+#    undef RP_pSPI_USE_SPI0
 #    define RP_SPI_USE_SPI0 TRUE
 #    undef RP_SPI_USE_SPI1
 #    define RP_SPI_USE_SPI1 FALSE

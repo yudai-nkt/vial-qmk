@@ -94,7 +94,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
 
     float sensitivity = 0.5;           // Movement sensitivity
     float smoothing_factor = 0.7;     // Smoothing factor
-    float sensitivity_multiplier = 1.5; // Sensitivity adjustment multiplier
+    float sensitivity_multiplier = 1.5; // Base sensitivity multiplier
 
     // Apply rotation angle adjustment
     double rad = angle_array[cocot_config.rotation_angle] * (M_PI / 180) * -1;
@@ -107,9 +107,16 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     prev_x = smoothed_x;
     prev_y = smoothed_y;
 
-    // Apply sensitivity multiplier
-    smoothed_x *= sensitivity_multiplier;
-    smoothed_y *= sensitivity_multiplier;
+    // Calculate the magnitude of movement
+    float movement_magnitude = sqrt(smoothed_x * smoothed_x + smoothed_y * smoothed_y);
+
+    // Dynamic multiplier: slower for small movements, faster for large
+    float dynamic_multiplier = 1.0 + movement_magnitude / 10.0; // Adjust divisor for desired scaling
+    dynamic_multiplier = fmin(fmax(dynamic_multiplier, 0.5), 3.0); // Clamp between 0.5 and 3.0
+
+    // Apply dynamic multiplier to smoothed values
+    smoothed_x *= sensitivity_multiplier * dynamic_multiplier;
+    smoothed_y *= sensitivity_multiplier * dynamic_multiplier;
 
     // Scroll mode handling
     if (cocot_get_scroll_mode()) {
@@ -305,20 +312,3 @@ void cocot_set_scroll_mode(bool mode) {
     cocot_config.scrl_mode = mode;
 }
 
-/*
-#ifdef RGB_MATRIX_ENABLE
-    led_config_t g_led_config = { {
-    // Key Matrix to LED Index
-        {  1, 3, 5, 7, 9,51,53,55,57,59 },
-        { 10,12,14,16,18,42,44,46,48,50 },
-        { 19,20,21,22,23,37,38,39,40,41 },
-        { NO_LED,24,26,28, 0,30,32,34,36,NO_LED }
-    }, {
-    // LED Index to Physical Position
-        {126, 174}, {8, 244}, {19, 239}, {32, 249}, {43, 244}, {56, 254}, {66, 233}, {78, 235}, {89, 214}, {101, 216}, {4, 183}, {15, 178}, {28, 187}, {39, 182}, {52, 192}, {62, 171}, {74, 173}, {85, 153}, {97, 155}, {0, 121}, {24, 126}, {48, 131}, {70, 112}, {93, 93}, {52, 40}, {64, 33}, {75, 23}, {88, 12}, {100, 5}, {113, 0}, {126, 0}, {139, 0}, {152, 5}, {165, 11}, {177, 23}, {189, 33}, {201, 39}, {160, 93}, {183, 112}, {205, 130}, {229, 126}, {254, 121}, {156, 155}, {168, 153}, {179, 173}, {191, 171}, {201, 192}, {214, 182}, {225, 187}, {238, 178}, {249, 183}, {152, 216}, {164, 214}, {175, 235}, {187, 233}, {197, 253}, {210, 244}, {221, 249}, {234, 239}, {245, 244}
-    }, {
-    // LED Index to Flag
-        4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 4, 4, 4, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4, 4, 2, 4, 2, 4, 2, 4, 2, 4
-} };
-#endif
-*/

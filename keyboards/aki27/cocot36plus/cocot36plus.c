@@ -92,7 +92,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
 
     float sensitivity = 0.5;           // Movement sensitivity
     float smoothing_factor = 0.7;     // Smoothing factor
-    float sensitivity_multiplier = 1.5; // Sensitivity adjustment multiplier
+    float sensitivity_multiplier = 1.5; // Base sensitivity multiplier
 
     // Apply rotation angle adjustment
     double rad = angle_array[cocot_config.rotation_angle] * (M_PI / 180) * -1;
@@ -105,9 +105,16 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     prev_x = smoothed_x;
     prev_y = smoothed_y;
 
-    // Apply sensitivity multiplier
-    smoothed_x *= sensitivity_multiplier;
-    smoothed_y *= sensitivity_multiplier;
+    // Calculate the magnitude of movement
+    float movement_magnitude = sqrt(smoothed_x * smoothed_x + smoothed_y * smoothed_y);
+
+    // Dynamic multiplier: slower for small movements, faster for large
+    float dynamic_multiplier = 1.0 + movement_magnitude / 10.0; // Adjust divisor for desired scaling
+    dynamic_multiplier = fmin(fmax(dynamic_multiplier, 0.5), 3.0); // Clamp between 0.5 and 3.0
+
+    // Apply dynamic multiplier to smoothed values
+    smoothed_x *= sensitivity_multiplier * dynamic_multiplier;
+    smoothed_y *= sensitivity_multiplier * dynamic_multiplier;
 
     // Scroll mode handling
     if (cocot_get_scroll_mode()) {
