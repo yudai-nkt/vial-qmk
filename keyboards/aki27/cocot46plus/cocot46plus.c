@@ -62,11 +62,6 @@ int8_t angle_array[] = COCOT_ROTATION_ANGLE;
 bool     BurstState        = false;  // init burst state for Trackball module
 uint16_t MotionStart       = 0;      // Timer for accel, 0 is resting state
 
-// Scroll Accumulation
-static int16_t h_acm       = 0;
-static int16_t v_acm       = 0;
-
-
 void pointing_device_init_kb(void) {
     // set the CPI.
     pointing_device_set_cpi(cpi_array[cocot_config.cpi_idx]);
