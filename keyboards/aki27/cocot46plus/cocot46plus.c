@@ -79,7 +79,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
 
     // Apply rotation angle adjustment
     double rad = (double)angle_array[cocot_config.rotation_angle] * (M_PI / 180) * -1;
-    float rotated_x = -(mouse_report.x * cos(rad) - mouse_report.y * sin(rad)); // Reverse X-direction
+    float rotated_x = mouse_report.x * cos(rad) - mouse_report.y * sin(rad);
     float rotated_y = mouse_report.x * sin(rad) + mouse_report.y * cos(rad);
 
     // Apply smoothing to the rotated values
